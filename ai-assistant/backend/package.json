@@ -1,0 +1,25 @@
+{
+  "name": "ai-assistant-backend",
+  "version": "1.0.0",
+  "description": "LangChain + OpenAI agent backend that handles email and meeting-scheduling tasks via Gmail and Google Calendar",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "@langchain/openai": "^0.3.0",
+    "langchain": "^0.3.0",
+    "@langchain/core": "^0.3.0",
+    "express": "^4.19.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "googleapis": "^140.0.0",
+    "zod": "^3.23.8",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  }
+}

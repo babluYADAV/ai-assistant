@@ -1,0 +1,28 @@
+:root {
+  --paper: #f6f4ef;
+  --ink: #1c2027;
+  --ink-soft: #565b66;
+  --line: #dcd8cd;
+  --accent: #a8641f;
+  --accent-soft: #f1e3d1;
+  --bubble-user: #1c2027;
+  --bubble-user-text: #f6f4ef;
+  --bubble-agent: #ffffff;
+  --radius: 4px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Inter", -apple-system, sans-serif;
+}
+
+#root {
+  min-height: 100vh;
+}
