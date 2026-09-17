@@ -1,109 +1,200 @@
-# AI Assistant — Email & Meeting Scheduling
+# AI Assistant
 
-A chat-based AI assistant that reads/sends Gmail and manages Google Calendar,
-built with **React** (frontend), **Express + LangChain.js + OpenAI** (backend agent),
-and the **Google APIs** (Gmail, Calendar) for the actual actions.
+A full-stack AI assistant that lets a user chat in the browser and have the backend use OpenAI plus Google APIs to manage Gmail and Google Calendar.
 
-## How it works
+## What it does
 
-```
-React chat UI  --POST /api/chat-->  Express server  --LangChain AgentExecutor-->  OpenAI (gpt-4o)
-                                                              |
-                                                     tool calls as needed
-                                                              |
-                                          send_email / search_email (Gmail API)
-                                          schedule_meeting / check_availability (Calendar API)
-```
+- Chat with a React frontend
+- Connect a Google account through OAuth
+- Search and send Gmail messages
+- Check calendar availability and create meeting events
+- Keep a per-browser session ID for conversational context
 
-The OpenAI model decides, per message, whether it needs to call a tool (send an
-email, check free/busy time, create a calendar event) or just reply in text. It
-always restates what it's about to do before calling a tool that has real-world
-side effects, per the system prompt in `backend/src/agent.js`.
+## Tech stack
 
-## Project layout
+- Frontend: React, Create React App
+- Backend: Express.js + Node.js
+- AI orchestration: LangChain + OpenAI
+- Google integrations: Gmail API and Calendar API
 
-```
+## Project structure
+
+```text
 ai-assistant/
 ├── backend/
-│   ├── server.js                 Express app: /api/chat, Google OAuth routes
-│   ├── src/agent.js              LangChain agent + system prompt + session memory
-│   ├── src/tools/emailTools.js   send_email, search_email (Gmail API)
-│   ├── src/tools/calendarTools.js schedule_meeting, check_availability (Calendar API)
-│   ├── src/config/googleAuth.js  OAuth2 client + token persistence
-│   └── .env.example
-└── frontend/
-    └── src/
-        ├── App.jsx               Layout + "Connect Google" banner
-        └── components/
-            ├── ChatWindow.jsx    Message list + input, calls the backend
-            └── MessageBubble.jsx
+│   ├── .env.example
+│   ├── package.json
+│   ├── server.js
+│   ├── tokens.json
+│   ├── vercel.json
+│   └── src/
+│       ├── agent.js
+│       ├── config/
+│       │   └── googleAuth.js
+│       └── tools/
+│           ├── calendarTools.js
+│           └── emailTools.js
+├── frontend/
+│   ├── .env.example
+│   ├── package.json
+│   ├── public/
+│   └── src/
+│       ├── App.jsx
+│       ├── index.css
+│       ├── index.js
+│       └── components/
+│           ├── ChatWindow.jsx
+│           └── MessageBubble.jsx
+├── README.md
+└── .gitignore
 ```
 
-## Setup
+## Prerequisites
 
-### 1. Google Cloud Console
-1. Create a project at https://console.cloud.google.com.
-2. Enable the **Gmail API** and **Google Calendar API**.
-3. Create an **OAuth 2.0 Client ID** (type: Web application).
-4. Add `http://localhost:5000/auth/google/callback` as an authorized redirect URI.
-5. Copy the client ID and secret.
+Before running the app locally, make sure you have:
 
-### 2. OpenAI
-Get an API key from https://platform.openai.com/api-keys.
+- Node.js 18+
+- npm
+- A Google Cloud project
+- An OpenAI API key
 
-### 3. Backend
+## 1) Set up Google Cloud
+
+1. Go to the Google Cloud Console.
+2. Create a new project or select an existing one.
+3. Enable the Gmail API and Google Calendar API.
+4. Create an OAuth 2.0 Client ID.
+5. Add the redirect URI for local development:
+
+   http://localhost:5000/auth/google/callback
+
+6. Copy the client ID and client secret.
+
+## 2) Set up environment variables
+
+Create a .env file in the backend folder using the example file as a template:
+
 ```bash
 cd backend
-cp .env.example .env
-# fill in OPENAI_API_KEY, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
+copy .env.example .env
+```
+
+Then update it with your values:
+
+```env
+OPENAI_API_KEY=your_openai_api_key_here
+GOOGLE_CLIENT_ID=your_google_client_id_here
+GOOGLE_CLIENT_SECRET=your_google_client_secret_here
+GOOGLE_REDIRECT_URI=http://localhost:5000/auth/google/callback
+PORT=5000
+FRONTEND_ORIGIN=http://localhost:3000
+```
+
+Create the frontend environment file:
+
+```bash
+cd frontend
+copy .env.example .env
+```
+
+Then set:
+
+```env
+REACT_APP_API_BASE=http://localhost:5000
+```
+
+## 3) Install and run locally
+
+### Backend
+
+```bash
+cd backend
 npm install
 npm run dev
 ```
 
-### 4. Frontend
+The backend will run at:
+
+http://localhost:5000
+
+### Frontend
+
+In a second terminal:
+
 ```bash
 cd frontend
 npm install
 npm start
 ```
 
-Open http://localhost:3000, click **Connect Google**, approve the consent
-screen, and start chatting — e.g. "Email priya@acme.com asking to move
-Thursday's sync to 4pm" or "Find a 30-minute slot tomorrow afternoon and set up
-a call with dan@company.com about the Q3 roadmap."
+The frontend will run at:
 
-## Deploy to Vercel
+http://localhost:3000
 
-### Backend
-1. Import the backend folder into a Vercel project as a Node.js app.
-2. Set the project environment variables from `backend/.env.example`.
-3. Set the callback URL in Google Cloud to `https://<your-backend-domain>/auth/google/callback`.
-4. Deploy the app and copy the backend URL.
+## 4) Use the app
 
-### Frontend
-1. Import the frontend folder as a React app in Vercel.
-2. Set `REACT_APP_API_BASE` to your deployed backend URL, for example `https://your-backend-url.vercel.app`.
+1. Open the frontend in your browser.
+2. Click the Connect Google button.
+3. Allow the requested Gmail and Calendar permissions.
+4. Start chatting with prompts like:
+   - "Send an email to jane@example.com with a meeting summary."
+   - "Check my availability tomorrow afternoon and schedule a 30 minute meeting with dan@example.com."
+
+## How it works
+
+The UI sends a chat message to the backend at /api/chat. The backend runs the LangChain agent, which decides whether to respond with plain text or call one of the Google tools for Gmail or Calendar actions.
+
+Example flow:
+
+```text
+React UI -> Express backend -> LangChain agent -> OpenAI
+                                     |
+                                     +-> Gmail tools
+                                     +-> Calendar tools
+```
+
+## Deployment notes
+
+This project is designed to be deployed with the frontend and backend as separate services.
+
+### Backend on Vercel
+
+1. Import the backend folder as a Node.js project in Vercel.
+2. Set the same environment variables from backend/.env.example.
+3. Update the Google OAuth redirect URI to the deployed backend URL:
+
+   https://<your-backend-domain>/auth/google/callback
+
+4. Deploy the backend and copy the URL.
+
+### Frontend on Vercel
+
+1. Import the frontend folder as a React app.
+2. Set REACT_APP_API_BASE to your deployed backend URL.
 3. Deploy the frontend.
 
-> For a production deployment, the backend and frontend should usually be separate Vercel projects because the OAuth redirect and API base URL are different.
+> The OAuth flow depends on the backend URL being correct, so the frontend and backend should usually be kept separate in production.
 
-## Extending it
+## Important considerations
 
-- **More tools**: add a new `tool(...)` in `src/tools/` (e.g. draft-only emails,
-  reschedule/cancel events, Slack notifications) and register it in the `tools`
-  array in `agent.js`.
-- **Multi-user**: swap the in-memory `sessions` Map and the single `tokens.json`
-  file for a real database keyed by user ID — right now the demo supports one
-  connected Google account at a time.
-- **Streaming replies**: swap `executor.invoke` for `executor.stream` and pipe
-  tokens to the frontend over SSE or a websocket if you want the UI to type
-  responses out live.
-- **Guardrails**: the system prompt asks the model to confirm details before
-  acting, but for production you may want a human-in-the-loop confirmation step
-  in the UI before `send_email` / `schedule_meeting` actually fire.
+- The app currently stores Google OAuth tokens in backend/tokens.json for demo purposes.
+- This is a starter project and is not production-hardened for multi-user use.
+- For real usage, you should move token storage to a secure database and add authentication and rate limiting around the chat API.
 
-## Security notes
+## Useful commands
 
-This is a starter/demo. Before using it for real: store OAuth tokens encrypted
-in a proper database (not a local JSON file), add authentication to your own
-`/api/chat` endpoint, rate-limit it, and review OpenAI/Google API usage costs.
+```bash
+# Backend
+cd backend
+npm install
+npm run dev
+
+# Frontend
+cd frontend
+npm install
+npm start
+```
+
+## License
+
+This project is provided as a sample app for learning and experimentation.
